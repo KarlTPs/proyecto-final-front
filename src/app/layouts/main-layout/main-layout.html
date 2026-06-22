@@ -1,0 +1,177 @@
+<div class="admin-shell">
+
+  <!-- Backdrop móvil -->
+  <div class="sidebar-backdrop" (click)="closeSidebar()"></div>
+
+  <!-- ══════════════ SIDEBAR ══════════════ -->
+  <aside class="admin-sidebar" id="adminSidebar" aria-label="Main navigation">
+
+    <div class="sidebar-header">
+      <a class="brand-mark" routerLink="/books" aria-label="Burrito Lector">
+        <span class="brand-icon">
+          <i class="bi bi-book-half" aria-hidden="true"></i>
+        </span>
+        <span class="brand-copy">
+          <span class="brand-title">Burrito Lector</span>
+          <span class="brand-subtitle">Tu plataforma literaria</span>
+        </span>
+      </a>
+    </div>
+
+    <nav class="sidebar-nav">
+
+      <!-- Links comunes a todos los usuarios -->
+      <a class="nav-link"
+         routerLink="/books"
+         routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }">
+        <span class="nav-icon"><i class="bi bi-book" aria-hidden="true"></i></span>
+        <span class="nav-text">Catálogo</span>
+      </a>
+
+      <a class="nav-link"
+         routerLink="/users/profile"
+         routerLinkActive="active">
+        <span class="nav-icon"><i class="bi bi-person-badge" aria-hidden="true"></i></span>
+        <span class="nav-text">Mi perfil</span>
+      </a>
+
+      <a class="nav-link"
+         routerLink="/users/affinity"
+         routerLinkActive="active">
+        <span class="nav-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
+        <span class="nav-text">Afinidades</span>
+      </a>
+
+      <!-- Links exclusivos de admin -->
+      @if (isAdmin()) {
+        <a class="nav-link"
+           routerLink="/admin"
+           routerLinkActive="active"
+           [routerLinkActiveOptions]="{ exact: true }">
+          <span class="nav-icon"><i class="bi bi-speedometer2" aria-hidden="true"></i></span>
+          <span class="nav-text">Dashboard</span>
+        </a>
+
+        <a class="nav-link"
+           routerLink="/admin/books"
+           routerLinkActive="active">
+          <span class="nav-icon"><i class="bi bi-table" aria-hidden="true"></i></span>
+          <span class="nav-text">Gestión de libros</span>
+        </a>
+
+        <a class="nav-link"
+           routerLink="/admin/reviews"
+           routerLinkActive="active">
+          <span class="nav-icon"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></span>
+          <span class="nav-text">Moderación</span>
+        </a>
+      }
+
+    </nav>
+
+    <!-- Usuario en sidebar -->
+    <div class="sidebar-user">
+      <span class="brand-icon avatar-md sidebar-user-avatar">
+        <i class="bi bi-person-fill" aria-hidden="true"></i>
+      </span>
+      <strong>{{ currentUser()?.username }}</strong>
+      <small>{{ isAdmin() ? 'Administrador' : 'Lector' }}</small>
+    </div>
+
+    <div class="sidebar-footer">
+      <span class="status-dot"></span>
+      <span class="sidebar-footer-text">Sistema operativo</span>
+    </div>
+
+  </aside>
+
+  <!-- ══════════════ MAIN ══════════════ -->
+  <div class="admin-main">
+
+    <!-- NAVBAR -->
+    <nav class="navbar admin-navbar navbar-expand bg-white">
+      <div class="container-fluid px-3 px-lg-4">
+
+        <!-- Toggle sidebar -->
+        <button class="sidebar-toggle"
+                type="button"
+                (click)="toggleSidebar()"
+                aria-controls="adminSidebar"
+                [attr.aria-expanded]="sidebarOpen()"
+                aria-label="Toggle sidebar">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <!-- Búsqueda -->
+        <form class="d-none d-md-flex ms-3 flex-grow-1" role="search" (submit)="$event.preventDefault()">
+          <input class="form-control search-input"
+                 type="search"
+                 placeholder="Buscar libros, autores..."
+                 aria-label="Buscar"
+                 [(ngModel)]="searchQuery"
+                 (keyup.enter)="onSearch()">
+        </form>
+
+        <div class="navbar-actions ms-auto">
+
+          <!-- Toggle tema -->
+          <button class="icon-button theme-toggle"
+                  type="button"
+                  (click)="toggleTheme()"
+                  aria-label="Cambiar tema"
+                  title="Cambiar tema de color">
+            <i class="bi" [class.bi-moon-stars]="!isDark()" [class.bi-sun]="isDark()" aria-hidden="true"></i>
+          </button>
+
+          <!-- Perfil dropdown -->
+          <div class="dropdown">
+            <button class="profile-button dropdown-toggle"
+                    type="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+              <span class="profile-avatar">
+                <i class="bi bi-person-fill" aria-hidden="true"></i>
+              </span>
+              <span class="profile-name d-none d-sm-inline">
+                {{ currentUser()?.username }}
+              </span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li>
+                <a class="dropdown-item" routerLink="/users/profile">
+                  <i class="bi bi-person me-2"></i>Mi perfil
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <button class="dropdown-item text-danger" type="button" (click)="logout()">
+                  <i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión
+                </button>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+    </nav>
+
+    <!-- CONTENIDO DE CADA RUTA -->
+    <main class="dashboard-content">
+      <div class="container-fluid px-3 px-lg-4 py-4">
+        <router-outlet />
+      </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="admin-footer">
+      <div class="container-fluid px-3 px-lg-4">
+        <span>© 2026 Burrito Lector</span>
+        <span>Plataforma literaria</span>
+      </div>
+    </footer>
+
+  </div>
+</div>

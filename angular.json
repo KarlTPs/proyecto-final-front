@@ -25,7 +25,14 @@
               }
             ],
             "styles": [
+              "src/assets/css/bootstrap.min.css",
+              "src/assets/vendors/bootstrap-icons/bootstrap-icons.css",
+              "src/assets/css/style.css",
               "src/styles.css"
+            ],
+            "scripts": [
+              "src/assets/js/bootstrap.bundle.min.js",
+              "src/assets/js/main.js"
             ]
           },
           "configurations": {

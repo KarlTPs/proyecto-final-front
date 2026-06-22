@@ -1,0 +1,105 @@
+<body class="auth-body">
+
+  <button class="icon-button theme-toggle auth-theme-toggle"
+          type="button"
+          data-theme-toggle
+          aria-label="Switch color theme"
+          title="Switch color theme">
+    <i class="bi bi-moon-stars" data-theme-icon aria-hidden="true"></i>
+  </button>
+
+  <main class="auth-page">
+    <section class="auth-card">
+
+      <!-- Brand -->
+      <a class="auth-brand" routerLink="/books">
+        <span class="brand-icon">
+          <i class="bi bi-book-half" aria-hidden="true"></i>
+        </span>
+        <span>
+          <strong>Burrito Lector</strong>
+          <small>Inicia sesión en tu cuenta.</small>
+        </span>
+      </a>
+
+      <!-- Visual decorativo -->
+      <div class="auth-visual">
+        <img src="assets/images/png/dasher-ui-bootstrap-5.jpg"
+             alt="Burrito Lector dashboard">
+      </div>
+
+      <!-- Formulario -->
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+        <div class="mb-4">
+          <p class="eyebrow mb-1">Acceso seguro</p>
+          <h1 class="h3 mb-1">Iniciar sesión</h1>
+          <p class="text-muted mb-0">Ingresa tus credenciales para continuar.</p>
+        </div>
+
+        <!-- Error global -->
+        @if (errorMessage()) {
+          <div class="alert alert-danger py-2 mb-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            {{ errorMessage() }}
+          </div>
+        }
+
+        <!-- Username -->
+        <div class="mb-3">
+          <label class="form-label" for="loginUsername">Usuario</label>
+          <input class="form-control"
+                 id="loginUsername"
+                 type="text"
+                 formControlName="username"
+                 [class.is-invalid]="username.invalid && username.touched">
+          @if (username.touched && username.hasError('required')) {
+            <div class="invalid-feedback">El usuario es requerido.</div>
+          }
+          @if (username.touched && username.hasError('minlength')) {
+            <div class="invalid-feedback">Mínimo 3 caracteres.</div>
+          }
+        </div>
+
+        <!-- Password -->
+        <div class="mb-3">
+          <div class="d-flex justify-content-between">
+            <label class="form-label" for="loginPassword">Contraseña</label>
+            <a class="small fw-semibold" routerLink="/auth/forgot-password">¿Olvidaste tu contraseña?</a>
+          </div>
+          <input class="form-control"
+                 id="loginPassword"
+                 type="password"
+                 formControlName="password"
+                 [class.is-invalid]="password.invalid && password.touched">
+          @if (password.touched && password.hasError('required')) {
+            <div class="invalid-feedback">La contraseña es requerida.</div>
+          }
+          @if (password.touched && password.hasError('minlength')) {
+            <div class="invalid-feedback">Mínimo 8 caracteres.</div>
+          }
+        </div>
+
+        <!-- Submit -->
+        <button class="btn btn-primary w-100"
+                type="submit"
+                [disabled]="isLoading()">
+          @if (isLoading()) {
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            Iniciando sesión...
+          } @else {
+            <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
+            Iniciar sesión
+          }
+        </button>
+
+      </form>
+
+      <div class="auth-footer">
+        ¿Primera vez aquí? <a routerLink="/auth/register">Crear una cuenta</a>
+      </div>
+
+    </section>
+  </main>
+
+</body>
