@@ -57,6 +57,10 @@ export class ReviewModeration implements OnInit {
         );
 
         forkJoin(requests).subscribe(details => {
+          console.log('=== MODERATION DETAILS ===');
+            details.forEach((b, i) => {
+            if (b) console.log(`Book ${i} reviews:`, JSON.stringify(b.reviews, null, 2));
+          });
           const withReviews: BookWithReviews[] = details
             .filter((b): b is Book => {
               if (!b) return false;

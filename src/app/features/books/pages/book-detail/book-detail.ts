@@ -48,6 +48,8 @@ export class BookDetail implements OnInit {
     this.isLoading.set(true);
     this.booksService.getById(id).subscribe({
       next: (book) => {
+        console.log('=== BOOK DETAIL ===');
+        console.log('reviews:', JSON.stringify(book.reviews, null, 2));
         this.book.set(book);
         this.isLoading.set(false);
       },
