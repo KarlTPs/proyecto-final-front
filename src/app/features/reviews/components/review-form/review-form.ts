@@ -1,4 +1,7 @@
-import { Component, inject, signal, input, output, computed, OnChanges } from '@angular/core';
+import {
+  Component, inject, signal, input, output,
+  computed, OnChanges, SimpleChanges
+} from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Reviews, CreateReviewDto } from '../../services/reviews';
 import { Review } from '../../../../core/models/review';
@@ -13,48 +16,53 @@ export class ReviewForm implements OnChanges {
   private fb      = inject(FormBuilder);
   private reviews = inject(Reviews);
 
-  // ── Inputs ──
   bookId          = input.required<string>();
   existingReviews = input<Review[]>([]);
   currentUserId   = input<string>('');
 
-  // ── Outputs ──
   reviewSubmitted = output<void>();
 
-  // ── Signals ──
-  isLoading    = signal(false);
-  errorMessage = signal<string | null>(null);
+  isLoading      = signal(false);
+  errorMessage   = signal<string | null>(null);
   successMessage = signal<string | null>(null);
-  isEditing    = signal(false);
-  editingId    = signal<string | null>(null);
-  hoveredStar  = signal(0);
+  isEditing      = signal(false);
+  editingId      = signal<string | null>(null);
+  hoveredStar    = signal(0);
 
-  // ── Computed ──
   readonly userReview = computed(() =>
-    this.existingReviews().find(r => r.user.id === this.currentUserId())
+    this.existingReviews().find(r => r.user?.id === this.currentUserId())
   );
 
-  readonly alreadyReviewed = computed(() => !!this.userReview() && !this.isEditing());
+  readonly alreadyReviewed = computed(() =>
+    !!this.userReview() && !this.isEditing()
+  );
 
   form = this.fb.group({
     rating:  [0, [Validators.required, Validators.min(1), Validators.max(5)]],
     comment: ['', Validators.maxLength(1000)],
   });
 
-  get rating()  { return this.form.get('rating')!;  }
+  get rating()  { return this.form.get('rating')!; }
   get comment() { return this.form.get('comment')!; }
 
-  ngOnChanges(): void {
-    const existing = this.userReview();
-    if (existing) {
-      this.form.patchValue({
-        rating:  existing.rating,
-        comment: existing.comment ?? '',
-      });
-      this.editingId.set(existing.id);
-    } else {
-      this.editingId.set(null);
-      this.form.reset({ rating: 0, comment: '' });
+  get currentRating(): number {
+    return this.hoveredStar() || (this.rating.value ?? 0);
+  }
+
+  // ── ngOnChanges en lugar de ngOnInit ──
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['existingReviews']) {
+      const existing = this.userReview();
+      if (existing) {
+        this.form.patchValue({
+          rating:  existing.rating,
+          comment: existing.comment ?? '',
+        });
+        this.editingId.set(existing.id);
+      } else {
+        this.editingId.set(null);
+        this.form.patchValue({ rating: 0, comment: '' });
+      }
     }
   }
 
@@ -70,7 +78,10 @@ export class ReviewForm implements OnChanges {
     this.isEditing.set(false);
     const existing = this.userReview();
     if (existing) {
-      this.form.patchValue({ rating: existing.rating, comment: existing.comment ?? '' });
+      this.form.patchValue({
+        rating:  existing.rating,
+        comment: existing.comment ?? '',
+      });
     }
   }
 
@@ -114,8 +125,4 @@ export class ReviewForm implements OnChanges {
   }
 
   starsArray = [1, 2, 3, 4, 5];
-
-  get currentRating(): number {
-  return this.hoveredStar() || (this.rating.value ?? 0);
-  }
 }

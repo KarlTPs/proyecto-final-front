@@ -1,13 +1,18 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { Books } from '../../../books/services/books';
 import { Reviews } from '../../../reviews/services/reviews';
 import { Book } from '../../../../core/models/book';
 import { Review } from '../../../../core/models/review';
-import { catchError, forkJoin, of } from 'rxjs';
 
-interface BookWithReviews extends Book {
+interface BookWithReviews {
+  id: string;
+  title: string;
+  author: string;
+  coverImage: string | null;
   reviews: Review[];
 }
 
@@ -25,7 +30,6 @@ export class ReviewModeration implements OnInit {
   isLoading        = signal(true);
   error            = signal<string | null>(null);
 
-  // Modal de confirmación
   deletingReview = signal<{ review: Review; bookTitle: string } | null>(null);
   isDeleting     = signal(false);
   deleteError    = signal<string | null>(null);
@@ -35,38 +39,54 @@ export class ReviewModeration implements OnInit {
   }
 
   private loadBooksWithReviews(): void {
-  this.isLoading.set(true);
+    this.isLoading.set(true);
+    this.error.set(null);
 
-  this.booksService.getAll({ page: 1, limit: 50 }).subscribe({
-    next: (res) => {
-      if (res.data.length === 0) {
-        this.booksWithReviews.set([]);
+    this.booksService.getAll({ page: 1, limit: 50 }).subscribe({
+      next: (res) => {
+        if (res.data.length === 0) {
+          this.booksWithReviews.set([]);
+          this.isLoading.set(false);
+          return;
+        }
+
+        const requests = res.data.map(book =>
+          this.booksService.getById(book.id).pipe(
+            catchError(() => of(null))
+          )
+        );
+
+        forkJoin(requests).subscribe(details => {
+          const withReviews: BookWithReviews[] = details
+            .filter((b): b is Book => {
+              if (!b) return false;
+              if (!Array.isArray(b.reviews)) return false;
+              if (b.reviews.length === 0) return false;
+              return true;
+            })
+            .map(b => ({
+              id:         b.id,
+              title:      b.title,
+              author:     b.author,
+              coverImage: b.coverImage,
+              // Filtrar solo reseñas que tienen user válido
+              reviews: (b.reviews as Review[]).filter(
+                r => r && r.id && r.user && r.user.id && r.user.username
+              ),
+            }))
+            // Descartar libros que quedaron sin reseñas válidas
+            .filter(b => b.reviews.length > 0);
+
+          this.booksWithReviews.set(withReviews);
+          this.isLoading.set(false);
+        });
+      },
+      error: () => {
+        this.error.set('Error al cargar las reseñas.');
         this.isLoading.set(false);
-        return;
-      }
-
-      // Cargar todos los detalles en paralelo de forma controlada
-      const requests = res.data.map(book =>
-        this.booksService.getById(book.id).pipe(
-          catchError(() => of(null)) // Si falla uno, no bloquear los demás
-        )
-      );
-
-      forkJoin(requests).subscribe(details => {
-        const withReviews = details
-          .filter((b): b is Book & { reviews: Review[] } =>
-            b !== null && Array.isArray(b.reviews) && b.reviews.length > 0
-          );
-        this.booksWithReviews.set(withReviews);
-        this.isLoading.set(false);
-      });
-    },
-    error: () => {
-      this.error.set('Error al cargar las reseñas.');
-      this.isLoading.set(false);
-    },
-  });
-}
+      },
+    });
+  }
 
   confirmDelete(review: Review, bookTitle: string): void {
     this.deletingReview.set({ review, bookTitle });
@@ -83,21 +103,36 @@ export class ReviewModeration implements OnInit {
     const target = this.deletingReview();
     if (!target) return;
 
+    const reviewId = target.review?.id;
+    if (!reviewId) {
+      this.deleteError.set('No se pudo identificar la reseña.');
+      return;
+    }
+
     this.isDeleting.set(true);
-    this.reviewsService.delete(target.review.id).subscribe({
+    this.deleteError.set(null);
+
+    this.reviewsService.delete(reviewId).subscribe({
       next: () => {
-        // Quitar la reseña del signal local sin recargar todo
         this.booksWithReviews.update(books =>
-          books.map(b => ({
-            ...b,
-            reviews: b.reviews.filter(r => r.id !== target.review.id),
-          })).filter(b => b.reviews.length > 0)
+          books
+            .map(b => ({
+              ...b,
+              reviews: b.reviews.filter(r => r.id !== reviewId),
+            }))
+            .filter(b => b.reviews.length > 0)
         );
         this.deletingReview.set(null);
         this.isDeleting.set(false);
       },
-      error: () => {
-        this.deleteError.set('Error al eliminar la reseña.');
+      error: (err) => {
+        this.deleteError.set(
+          err.status === 403
+            ? 'No tienes permisos para eliminar esta reseña.'
+            : err.status === 404
+            ? 'La reseña ya no existe.'
+            : `Error al eliminar la reseña (${err.status}).`
+        );
         this.isDeleting.set(false);
       },
     });
@@ -110,6 +145,8 @@ export class ReviewModeration implements OnInit {
   }
 
   get totalReviews(): number {
-    return this.booksWithReviews().reduce((acc, b) => acc + b.reviews.length, 0);
+    return this.booksWithReviews().reduce(
+      (acc, b) => acc + b.reviews.length, 0
+    );
   }
 }

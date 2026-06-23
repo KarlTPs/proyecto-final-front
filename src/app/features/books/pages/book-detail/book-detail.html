@@ -14,7 +14,6 @@
 
 @if (book(); as b) {
 
-  <!-- Encabezado -->
   <div class="page-heading">
     <div class="page-heading-copy">
       <span class="page-icon">
@@ -28,7 +27,8 @@
     </div>
     @if (isAdmin()) {
       <div class="heading-actions">
-        <a class="btn btn-outline-secondary btn-sm" [routerLink]="['/books', b.id, 'edit']">
+        <a class="btn btn-outline-secondary btn-sm"
+           [routerLink]="['/books', b.id, 'edit']">
           <i class="bi bi-pencil"></i> Editar
         </a>
       </div>
@@ -37,15 +37,14 @@
 
   <div class="row g-4">
 
-    <!-- Columna izquierda: portada + info -->
     <div class="col-12 col-lg-4">
       <div class="panel">
-
-        <!-- Portada -->
-        <div style="height: 280px; overflow:hidden; margin: -1.35rem -1.35rem 1.35rem; border-radius: 8px 8px 0 0;">
+        <div style="height:280px; overflow:hidden;
+                    margin:-1.35rem -1.35rem 1.35rem;
+                    border-radius:8px 8px 0 0;">
           @if (b.coverImage) {
             <img [src]="b.coverImage" [alt]="b.title"
-                 style="width:100%; height:100%; object-fit:cover;">
+                 style="width:100%;height:100%;object-fit:cover;">
           } @else {
             <div class="d-flex align-items-center justify-content-center h-100 bg-light">
               <i class="bi bi-book display-1 text-muted"></i>
@@ -53,7 +52,6 @@
           }
         </div>
 
-        <!-- Rating -->
         <div class="d-flex align-items-center gap-2 mb-3">
           @for (star of getRatingStars(b.averageRating); track $index) {
             <i class="bi {{ star }} text-warning" aria-hidden="true"></i>
@@ -66,7 +64,6 @@
           }
         </div>
 
-        <!-- Metadatos -->
         <div class="info-list">
           @if (b.publicationDate) {
             <div>
@@ -81,14 +78,11 @@
             </div>
           }
         </div>
-
       </div>
     </div>
 
-    <!-- Columna derecha: sinopsis + reseñas -->
     <div class="col-12 col-lg-8 d-flex flex-column gap-4">
 
-      <!-- Sinopsis -->
       @if (b.synopsis) {
         <div class="panel">
           <h2 class="h5 mb-3 section-title">
@@ -99,7 +93,7 @@
         </div>
       }
 
-      <!-- Formulario de reseña -->
+      <!-- Solo mostrar ReviewForm si está autenticado -->
       @if (isAuthenticated()) {
         <app-review-form
           [bookId]="b.id"
@@ -108,15 +102,15 @@
           (reviewSubmitted)="onReviewSubmitted()">
         </app-review-form>
       }
-      
-      <!-- Lista de reseñas -->
+
+      <!-- ReviewList siempre visible, con el array computado -->
       <app-review-list
         [bookId]="b.id"
         [reviews]="bookReviews()"
         [currentUserId]="currentUser()?.id ?? ''"
         [isAdmin]="isAdmin()">
       </app-review-list>
-      
+
     </div>
   </div>
 }
