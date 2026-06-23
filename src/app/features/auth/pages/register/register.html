@@ -18,23 +18,17 @@
         </span>
         <span>
           <strong>Burrito Lector</strong>
-          <small>Crea tu cuenta.</small>
+          <small>Crea tu cuenta gratuita.</small>
         </span>
       </a>
-
-      <!-- Visual decorativo -->
-      <div class="auth-visual">
-        <img src="assets/images/png/dasher-ui-bootstrap-5.jpg"
-             alt="Burrito Lector dashboard">
-      </div>
 
       <!-- Formulario -->
       <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
 
         <div class="mb-4">
-          <p class="eyebrow mb-1">Únete a la comunidad</p>
+          <p class="eyebrow mb-1">Bienvenido</p>
           <h1 class="h3 mb-1">Crear cuenta</h1>
-          <p class="text-muted mb-0">Regístrate para reseñar tus libros favoritos.</p>
+          <p class="text-muted mb-0">Únete a la comunidad de lectores.</p>
         </div>
 
         <!-- Error global -->
@@ -47,14 +41,15 @@
 
         <!-- Username -->
         <div class="mb-3">
-          <label class="form-label" for="registerUsername">Usuario</label>
+          <label class="form-label" for="regUsername">Nombre de usuario</label>
           <input class="form-control"
-                 id="registerUsername"
+                 id="regUsername"
                  type="text"
                  formControlName="username"
+                 placeholder="Ej: juanperez"
                  [class.is-invalid]="username.invalid && username.touched">
           @if (username.touched && username.hasError('required')) {
-            <div class="invalid-feedback">El usuario es requerido.</div>
+            <div class="invalid-feedback">El nombre de usuario es requerido.</div>
           }
           @if (username.touched && username.hasError('minlength')) {
             <div class="invalid-feedback">Mínimo 3 caracteres.</div>
@@ -66,11 +61,12 @@
 
         <!-- Email -->
         <div class="mb-3">
-          <label class="form-label" for="registerEmail">Correo electrónico</label>
+          <label class="form-label" for="regEmail">Correo electrónico</label>
           <input class="form-control"
-                 id="registerEmail"
+                 id="regEmail"
                  type="email"
                  formControlName="email"
+                 placeholder="correo@ejemplo.com"
                  [class.is-invalid]="email.invalid && email.touched">
           @if (email.touched && email.hasError('required')) {
             <div class="invalid-feedback">El correo es requerido.</div>
@@ -82,11 +78,12 @@
 
         <!-- Password -->
         <div class="mb-3">
-          <label class="form-label" for="registerPassword">Contraseña</label>
+          <label class="form-label" for="regPassword">Contraseña</label>
           <input class="form-control"
-                 id="registerPassword"
+                 id="regPassword"
                  type="password"
                  formControlName="password"
+                 placeholder="Mínimo 8 caracteres"
                  [class.is-invalid]="password.invalid && password.touched">
           @if (password.touched && password.hasError('required')) {
             <div class="invalid-feedback">La contraseña es requerida.</div>
@@ -94,8 +91,28 @@
           @if (password.touched && password.hasError('minlength')) {
             <div class="invalid-feedback">Mínimo 8 caracteres.</div>
           }
-          @if (password.touched && password.hasError('weakPassword')) {
-            <div class="invalid-feedback">Debe incluir mayúscula, minúscula y un número o símbolo.</div>
+          @if (password.touched && password.hasError('passwordStrength')) {
+            <div class="invalid-feedback">
+              Debe incluir mayúscula, minúscula y un número o símbolo.
+            </div>
+          }
+        </div>
+
+        <!-- Confirmar password -->
+        <div class="mb-4">
+          <label class="form-label" for="regConfirm">Confirmar contraseña</label>
+          <input class="form-control"
+                 id="regConfirm"
+                 type="password"
+                 formControlName="confirmPassword"
+                 placeholder="Repite tu contraseña"
+                 [class.is-invalid]="(confirmPassword.touched && confirmPassword.hasError('required'))
+                                     || (form.hasError('passwordMismatch') && confirmPassword.touched)">
+          @if (confirmPassword.touched && confirmPassword.hasError('required')) {
+            <div class="invalid-feedback">Confirma tu contraseña.</div>
+          }
+          @if (form.hasError('passwordMismatch') && confirmPassword.touched) {
+            <div class="invalid-feedback">Las contraseñas no coinciden.</div>
           }
         </div>
 
@@ -115,7 +132,7 @@
       </form>
 
       <div class="auth-footer">
-        ¿Ya tienes cuenta? <a routerLink="/auth/login">Inicia sesión</a>
+        ¿Ya tienes cuenta? <a routerLink="/auth/login">Iniciar sesión</a>
       </div>
 
     </section>

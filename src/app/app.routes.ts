@@ -3,6 +3,8 @@ import { authGuard } from './core/guards/auth-guard';
 import { adminGuard } from './core/guards/admin-guard';
 import { noAuthGuard } from './core/guards/no-auth-guard';
 import { MainLayout } from './layouts/main-layout/main-layout';
+import { ServerError } from './server-error/server-error';
+import { NotFound } from './not-found/not-found';
 
 export const routes: Routes = [
   // Rutas públicas — sin layout
@@ -11,17 +13,6 @@ export const routes: Routes = [
     canActivate: [noAuthGuard],
     loadChildren: () => import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES),
   },
-
-  // Páginas de error — sin layout
-  {
-    path: '404',
-    loadComponent: () => import('./features/errors/pages/not-found/not-found').then(m => m.NotFound),
-  },
-  {
-    path: '500',
-    loadComponent: () => import('./features/errors/pages/server-error/server-error').then(m => m.ServerError),
-  },
-
   // Rutas protegidas — con layout
   {
     path: '',
@@ -46,4 +37,17 @@ export const routes: Routes = [
   },
 
   { path: '**', redirectTo: 'books' },
+
+  {
+    path: '403',
+    component: ServerError, // reutilizamos, o crea un Forbidden específico
+  },
+  {
+    path: '500',
+    component: ServerError,
+  },
+  {
+    path: '**',
+    component: NotFound,
+  },
 ];
