@@ -5,8 +5,9 @@ import { Observable } from 'rxjs';
 import { User } from '../models/user';
 import { AuthResponse } from '../models/auth-response';
 import { Storage } from './storage';
+import { environment } from '../../../environments/environment';
 
-const BASE = 'http://localhost:3000/auth';
+const BASE = `${environment.apiUrl}/auth`;
 
 @Injectable({ providedIn: 'root' })
 export class Auth {

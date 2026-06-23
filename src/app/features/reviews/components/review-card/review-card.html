@@ -1,1 +1,121 @@
-<p>review-card works!</p>
+<article class="panel">
+
+  @if (errorMessage()) {
+    <div class="alert alert-danger py-2 mb-3" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMessage() }}
+    </div>
+  }
+
+  <!-- Modo lectura -->
+  @if (!isEditing()) {
+    <div class="d-flex align-items-start justify-content-between gap-2">
+
+      <div class="flex-grow-1">
+        <!-- Usuario y fecha -->
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="profile-avatar">
+            <i class="bi bi-person-fill" aria-hidden="true"></i>
+          </span>
+          <div>
+            <p class="fw-semibold mb-0">{{ review().user.username }}</p>
+            <p class="text-muted small mb-0">
+              {{ review().createdAt | date:'dd MMM yyyy' }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Estrellas -->
+        <div class="d-flex gap-1 mb-2">
+          @for (star of starsArray; track star) {
+            <i class="bi text-warning"
+               [class.bi-star-fill]="star <= review().rating"
+               [class.bi-star]="star > review().rating"
+               aria-hidden="true"></i>
+          }
+        </div>
+
+        <!-- Comentario -->
+        @if (review().comment) {
+          <p class="text-muted mb-0">{{ review().comment }}</p>
+        }
+      </div>
+
+      <!-- Acciones -->
+      @if (canEdit() || canDelete()) {
+        <div class="d-flex gap-1 flex-shrink-0">
+          @if (canEdit()) {
+            <button class="btn btn-light btn-sm" (click)="startEditing()" title="Editar">
+              <i class="bi bi-pencil" aria-hidden="true"></i>
+            </button>
+          }
+          @if (canDelete()) {
+            <button class="btn btn-light btn-sm text-danger" (click)="confirmDelete()" title="Eliminar">
+              <i class="bi bi-trash" aria-hidden="true"></i>
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Confirmación de borrado -->
+    @if (isDeleting()) {
+      <div class="alert alert-warning py-2 mt-3 d-flex align-items-center justify-content-between gap-2">
+        <span class="small">¿Eliminar esta reseña?</span>
+        <div class="d-flex gap-2">
+          <button class="btn btn-danger btn-sm" (click)="deleteReview()" [disabled]="isLoading()">
+            @if (isLoading()) {
+              <span class="spinner-border spinner-border-sm"></span>
+            } @else {
+              Eliminar
+            }
+          </button>
+          <button class="btn btn-outline-secondary btn-sm" (click)="cancelDelete()">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    }
+  }
+
+  <!-- Modo edición inline -->
+  @if (isEditing()) {
+    <form [formGroup]="form" (ngSubmit)="saveEdit()" novalidate>
+
+      <div class="d-flex gap-1 mb-3">
+        @for (star of starsArray; track star) {
+          <button type="button"
+                  class="btn p-0 border-0"
+                  style="font-size: 1.4rem; line-height:1;"
+                  (mouseenter)="hoveredStar.set(star)"
+                  (mouseleave)="hoveredStar.set(0)"
+                  (click)="setRating(star)">
+            <i class="bi text-warning"
+               [class.bi-star-fill]="star <= currentEditRating"
+               [class.bi-star]="star > currentEditRating"
+               aria-hidden="true"></i>
+          </button>
+        }
+      </div>
+
+      <textarea class="form-control mb-3"
+                rows="2"
+                formControlName="comment"
+                placeholder="Edita tu comentario...">
+      </textarea>
+
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary btn-sm" type="submit" [disabled]="isLoading()">
+          @if (isLoading()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          }
+          Guardar
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" (click)="cancelEditing()">
+          Cancelar
+        </button>
+      </div>
+
+    </form>
+  }
+
+</article>

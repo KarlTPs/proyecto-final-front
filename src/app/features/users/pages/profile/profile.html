@@ -1,1 +1,165 @@
-<p>profile works!</p>
+<!-- Encabezado -->
+<div class="page-heading">
+  <div class="page-heading-copy">
+    <span class="page-icon">
+      <i class="bi bi-person-badge" aria-hidden="true"></i>
+    </span>
+    <div>
+      <p class="eyebrow mb-1">Cuenta</p>
+      <h1 class="h3 mb-1">Mi perfil</h1>
+      <p class="text-muted mb-0">Tu información y actividad en Burrito Lector.</p>
+    </div>
+  </div>
+</div>
+
+@if (isLoading()) {
+  <div class="d-flex justify-content-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+}
+
+@if (error()) {
+  <div class="alert alert-danger" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error() }}
+  </div>
+}
+
+@if (profile(); as user) {
+  <div class="row g-4">
+
+    <!-- Columna izquierda: info del usuario -->
+    <div class="col-12 col-lg-4">
+
+      <!-- Tarjeta de perfil -->
+      <div class="panel profile-card mb-4">
+        <div class="profile-cover">
+          <div style="width:100%; height:100%;
+                      background: linear-gradient(135deg, var(--admin-primary), var(--admin-success));">
+          </div>
+        </div>
+
+        <div class="profile-hero">
+          <div class="profile-avatar profile-avatar-lg profile-photo mb-3">
+            <i class="bi bi-person-fill" style="font-size: 2.5rem;" aria-hidden="true"></i>
+          </div>
+          <h2 class="h5 mb-1">{{ user.username }}</h2>
+          <p class="text-muted small mb-2">{{ user.email }}</p>
+          <span class="badge"
+                [class.text-bg-primary]="user.role === 'admin'"
+                [class.text-bg-success]="user.role === 'user'">
+            {{ user.role === 'admin' ? 'Administrador' : 'Lector' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Datos del usuario -->
+      <div class="panel mb-4">
+        <h2 class="h5 mb-3 section-title">
+          <i class="bi bi-info-circle" aria-hidden="true"></i>
+          <span>Información</span>
+        </h2>
+        <div class="info-list">
+          <div>
+            <span>Usuario</span>
+            <strong>{{ user.username }}</strong>
+          </div>
+          <div>
+            <span>Correo</span>
+            <strong>{{ user.email }}</strong>
+          </div>
+          <div>
+            <span>Rol</span>
+            <strong>{{ user.role === 'admin' ? 'Administrador' : 'Lector' }}</strong>
+          </div>
+          @if (user.createdAt) {
+            <div>
+              <span>Miembro desde</span>
+              <strong>{{ user.createdAt | date:'dd MMM yyyy' }}</strong>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Mini estadísticas -->
+      <div class="row g-3">
+        <div class="col-6">
+          <div class="mini-card">
+            <span>Reseñas escritas</span>
+            <strong>{{ reviews().length }}</strong>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="mini-card">
+            <span>Afinidades</span>
+            <a class="fw-bold text-primary small" routerLink="/users/affinity">Ver</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Columna derecha: reseñas del usuario -->
+    <div class="col-12 col-lg-8">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="h5 mb-0 section-title">
+            <i class="bi bi-chat-left-text" aria-hidden="true"></i>
+            <span>Mis reseñas ({{ reviews().length }})</span>
+          </h2>
+        </div>
+
+        @if (reviews().length === 0) {
+          <div class="blank-panel" style="min-height: 200px;">
+            <div class="blank-state">
+              <i class="bi bi-book display-4 text-muted mb-2" aria-hidden="true"></i>
+              <p class="text-muted mb-2">Aún no has escrito ninguna reseña.</p>
+              <a class="btn btn-primary btn-sm" routerLink="/books">
+                Explorar catálogo
+              </a>
+            </div>
+          </div>
+        } @else {
+          <div class="d-flex flex-column gap-3">
+            @for (review of reviews(); track review.id) {
+              <div class="activity-item">
+                <span class="activity-dot bg-primary"></span>
+                <div class="flex-grow-1">
+
+                  <!-- Libro -->
+                  @if (review.book) {
+                    <a class="fw-semibold text-decoration-none"
+                       [routerLink]="['/books', review.book.id]">
+                      {{ review.book.title }}
+                    </a>
+                  }
+
+                  <!-- Estrellas -->
+                  <div class="d-flex gap-1 my-1">
+                    @for (star of getRatingStars(review.rating); track $index) {
+                      <i class="bi {{ star }} text-warning small" aria-hidden="true"></i>
+                    }
+                  </div>
+
+                  <!-- Comentario -->
+                  @if (review.comment) {
+                    <p class="text-muted small mb-1">{{ review.comment }}</p>
+                  }
+
+                  <!-- Fecha -->
+                  <p class="text-muted small mb-0">
+                    {{ review.createdAt | date:'dd MMM yyyy' }}
+                  </p>
+
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+      </div>
+    </div>
+
+  </div>
+}

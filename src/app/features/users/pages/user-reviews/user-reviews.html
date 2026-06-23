@@ -1,1 +1,92 @@
-<p>user-reviews works!</p>
+<!-- Encabezado -->
+<div class="page-heading">
+  <div class="page-heading-copy">
+    <span class="page-icon">
+      <i class="bi bi-chat-left-text" aria-hidden="true"></i>
+    </span>
+    <div>
+      <p class="eyebrow mb-1">Comunidad</p>
+      <h1 class="h3 mb-1">
+        @if (username()) {
+          Reseñas de {{ username() }}
+        } @else {
+          Reseñas del usuario
+        }
+      </h1>
+      <p class="text-muted mb-0">{{ reviews().length }} reseñas publicadas</p>
+    </div>
+  </div>
+  <div class="heading-actions">
+    <a class="btn btn-outline-secondary btn-sm" routerLink="/users/affinity">
+      <i class="bi bi-arrow-left"></i> Volver
+    </a>
+  </div>
+</div>
+
+@if (isLoading()) {
+  <div class="d-flex justify-content-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+}
+
+@if (error()) {
+  <div class="alert alert-danger" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error() }}
+  </div>
+}
+
+@if (!isLoading() && !error()) {
+
+  @if (reviews().length === 0) {
+    <div class="panel">
+      <div class="blank-panel">
+        <div class="blank-state">
+          <i class="bi bi-chat-left display-4 text-muted mb-2" aria-hidden="true"></i>
+          <p class="text-muted mb-0">Este usuario aún no ha escrito reseñas.</p>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="row g-3">
+      @for (review of reviews(); track review.id) {
+        <div class="col-12 col-md-6 col-xl-4">
+          <article class="panel h-100 d-flex flex-column">
+
+            <!-- Libro -->
+            @if (review.book) {
+              <a class="fw-semibold text-decoration-none mb-2"
+                 [routerLink]="['/books', review.book.id]">
+                <i class="bi bi-book me-1 text-primary" aria-hidden="true"></i>
+                {{ review.book.title }}
+              </a>
+            }
+
+            <!-- Estrellas -->
+            <div class="d-flex gap-1 mb-2">
+              @for (star of getRatingStars(review.rating); track $index) {
+                <i class="bi {{ star }} text-warning small" aria-hidden="true"></i>
+              }
+              <span class="small text-muted ms-1">{{ review.rating }}/5</span>
+            </div>
+
+            <!-- Comentario -->
+            @if (review.comment) {
+              <p class="text-muted small flex-grow-1 mb-2">{{ review.comment }}</p>
+            } @else {
+              <p class="text-muted small fst-italic flex-grow-1 mb-2">Sin comentario</p>
+            }
+
+            <!-- Fecha -->
+            <p class="text-muted small mb-0 mt-auto">
+              <i class="bi bi-calendar3 me-1" aria-hidden="true"></i>
+              {{ review.createdAt | date:'dd MMM yyyy' }}
+            </p>
+
+          </article>
+        </div>
+      }
+    </div>
+  }
+}

@@ -1,1 +1,172 @@
-<p>book-catalog works!</p>
+<!-- Encabezado -->
+<div class="page-heading">
+  <div class="page-heading-copy">
+    <span class="page-icon">
+      <i class="bi bi-book" aria-hidden="true"></i>
+    </span>
+    <div>
+      <p class="eyebrow mb-1">Biblioteca</p>
+      <h1 class="h3 mb-1">Catálogo de libros</h1>
+      <p class="text-muted mb-0">{{ total() }} libros disponibles</p>
+    </div>
+  </div>
+  @if (isAdmin()) {
+    <div class="heading-actions">
+      <a class="btn btn-primary btn-sm" routerLink="/admin/books/new">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> Nuevo libro
+      </a>
+    </div>
+  }
+</div>
+
+<!-- Filtros -->
+<div class="panel mb-4">
+  <div class="panel-header">
+    <h2 class="h5 mb-0 section-title">
+      <i class="bi bi-funnel" aria-hidden="true"></i>
+      <span>Filtros</span>
+    </h2>
+  </div>
+  <div class="row g-3">
+    <div class="col-12 col-md-4">
+      <input class="form-control"
+             type="text"
+             placeholder="Buscar por título..."
+             [(ngModel)]="title"
+             (keyup.enter)="onSearch()">
+    </div>
+    <div class="col-12 col-md-4">
+      <input class="form-control"
+             type="text"
+             placeholder="Buscar por autor..."
+             [(ngModel)]="author"
+             (keyup.enter)="onSearch()">
+    </div>
+    <div class="col-12 col-md-4">
+      <input class="form-control"
+             type="text"
+             placeholder="Género..."
+             [(ngModel)]="genre"
+             (keyup.enter)="onSearch()">
+    </div>
+    <div class="col-12 d-flex gap-2">
+      <button class="btn btn-primary btn-sm" (click)="onSearch()">
+        <i class="bi bi-search"></i> Buscar
+      </button>
+      <button class="btn btn-outline-secondary btn-sm" (click)="onReset()">
+        <i class="bi bi-x-circle"></i> Limpiar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Estado de carga -->
+@if (isLoading()) {
+  <div class="d-flex justify-content-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+}
+
+<!-- Error -->
+@if (error()) {
+  <div class="alert alert-danger" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error() }}
+  </div>
+}
+
+<!-- Grid de libros -->
+@if (!isLoading() && !error()) {
+  @if (books().length === 0) {
+    <div class="panel">
+      <div class="blank-panel">
+        <div class="blank-state">
+          <i class="bi bi-book-x display-4 text-muted mb-3" aria-hidden="true"></i>
+          <h2 class="h5">No se encontraron libros</h2>
+          <p class="text-muted">Intenta con otros filtros de búsqueda.</p>
+          <button class="btn btn-outline-secondary btn-sm" (click)="onReset()">
+            Ver todos los libros
+          </button>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="row g-3">
+      @for (book of books(); track book.id) {
+        <div class="col-12 col-sm-6 col-xl-4 col-xxl-3">
+          <article class="panel h-100 d-flex flex-column">
+
+            <!-- Portada -->
+            <div style="height: 200px; overflow: hidden; margin: -1.35rem -1.35rem 1rem; border-radius: 8px 8px 0 0;">
+              @if (book.coverImage) {
+                <img [src]="book.coverImage"
+                     [alt]="book.title"
+                     style="width:100%; height:100%; object-fit:cover;">
+              } @else {
+                <div class="d-flex align-items-center justify-content-center h-100 bg-light">
+                  <i class="bi bi-book display-4 text-muted" aria-hidden="true"></i>
+                </div>
+              }
+            </div>
+
+            <!-- Contenido -->
+            <div class="flex-grow-1">
+              @if (book.genre) {
+                <span class="eyebrow">{{ book.genre }}</span>
+              }
+              <h3 class="h6 fw-bold mb-1 mt-1">{{ book.title }}</h3>
+              <p class="text-muted small mb-2">{{ book.author }}</p>
+
+              @if (book.synopsis) {
+                <p class="small text-muted mb-2"
+                   style="display: -webkit-box; -webkit-line-clamp: 2;  line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                  {{ book.synopsis }}
+                </p>
+              }
+            </div>
+
+            <!-- Rating y acción -->
+            <div class="d-flex align-items-center justify-content-between mt-3">
+              <div class="d-flex align-items-center gap-1">
+                @for (star of getRatingStars(book.averageRating); track $index) {
+                  <i class="bi {{ star }} text-warning small" aria-hidden="true"></i>
+                }
+                @if (book.averageRating) {
+                  <span class="small text-muted ms-1">{{ book.averageRating }}</span>
+                }
+              </div>
+              <a class="btn btn-light btn-sm" [routerLink]="['/books', book.id]">
+                Ver más
+              </a>
+            </div>
+
+          </article>
+        </div>
+      }
+    </div>
+
+    <!-- Paginación -->
+    @if (totalPages() > 1) {
+      <nav class="d-flex justify-content-center mt-4" aria-label="Paginación">
+        <ul class="pagination">
+          <li class="page-item" [class.disabled]="page() === 1">
+            <button class="page-link" (click)="goToPage(page() - 1)">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+          </li>
+          @for (p of pages(); track p) {
+            <li class="page-item" [class.active]="p === page()">
+              <button class="page-link" (click)="goToPage(p)">{{ p }}</button>
+            </li>
+          }
+          <li class="page-item" [class.disabled]="page() === totalPages()">
+            <button class="page-link" (click)="goToPage(page() + 1)">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </li>
+        </ul>
+      </nav>
+    }
+  }
+}

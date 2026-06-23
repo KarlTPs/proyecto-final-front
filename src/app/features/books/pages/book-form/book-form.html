@@ -1,1 +1,198 @@
-<p>book-form works!</p>
+<!-- Encabezado -->
+<div class="page-heading">
+  <div class="page-heading-copy">
+    <span class="page-icon">
+      <i class="bi bi-book" aria-hidden="true"></i>
+    </span>
+    <div>
+      <p class="eyebrow mb-1">Administración</p>
+      <h1 class="h3 mb-1">{{ isEditing() ? 'Editar libro' : 'Nuevo libro' }}</h1>
+      <p class="text-muted mb-0">
+        {{ isEditing() ? 'Modifica los datos del libro.' : 'Completa los datos para agregar un libro al catálogo.' }}
+      </p>
+    </div>
+  </div>
+  <div class="heading-actions">
+    <a class="btn btn-outline-secondary btn-sm" routerLink="/admin/books">
+      <i class="bi bi-arrow-left"></i> Volver
+    </a>
+  </div>
+</div>
+
+<!-- Cargando libro (modo edición) -->
+@if (isLoadingBook()) {
+  <div class="d-flex justify-content-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando libro...</span>
+    </div>
+  </div>
+}
+
+@if (!isLoadingBook()) {
+  <div class="row g-4">
+
+    <!-- Columna principal: formulario -->
+    <div class="col-12 col-lg-8">
+      <div class="panel">
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+          @if (errorMessage()) {
+            <div class="alert alert-danger py-2 mb-4" role="alert">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMessage() }}
+            </div>
+          }
+
+          @if (successMessage()) {
+            <div class="alert alert-success py-2 mb-4" role="alert">
+              <i class="bi bi-check-circle-fill me-2"></i>{{ successMessage() }}
+            </div>
+          }
+
+          <!-- Título -->
+          <div class="mb-3">
+            <label class="form-label" for="bookTitle">
+              Título <span class="text-danger">*</span>
+            </label>
+            <input class="form-control"
+                   id="bookTitle"
+                   type="text"
+                   formControlName="title"
+                   placeholder="Ej: Cien años de soledad"
+                   [class.is-invalid]="title.invalid && title.touched">
+            @if (title.touched && title.hasError('required')) {
+              <div class="invalid-feedback">El título es requerido.</div>
+            }
+            @if (title.touched && title.hasError('maxlength')) {
+              <div class="invalid-feedback">Máximo 200 caracteres.</div>
+            }
+          </div>
+
+          <!-- Autor -->
+          <div class="mb-3">
+            <label class="form-label" for="bookAuthor">
+              Autor <span class="text-danger">*</span>
+            </label>
+            <input class="form-control"
+                   id="bookAuthor"
+                   type="text"
+                   formControlName="author"
+                   placeholder="Ej: Gabriel García Márquez"
+                   [class.is-invalid]="author.invalid && author.touched">
+            @if (author.touched && author.hasError('required')) {
+              <div class="invalid-feedback">El autor es requerido.</div>
+            }
+            @if (author.touched && author.hasError('maxlength')) {
+              <div class="invalid-feedback">Máximo 150 caracteres.</div>
+            }
+          </div>
+
+          <!-- Género y Fecha en fila -->
+          <div class="row g-3 mb-3">
+            <div class="col-12 col-sm-6">
+              <label class="form-label" for="bookGenre">Género</label>
+              <input class="form-control"
+                     id="bookGenre"
+                     type="text"
+                     formControlName="genre"
+                     placeholder="Ej: Realismo mágico"
+                     [class.is-invalid]="genre.invalid && genre.touched">
+              @if (genre.touched && genre.hasError('maxlength')) {
+                <div class="invalid-feedback">Máximo 100 caracteres.</div>
+              }
+            </div>
+            <div class="col-12 col-sm-6">
+              <label class="form-label" for="bookDate">Fecha de publicación</label>
+              <input class="form-control"
+                     id="bookDate"
+                     type="date"
+                     formControlName="publicationDate">
+            </div>
+          </div>
+
+          <!-- Sinopsis -->
+          <div class="mb-4">
+            <label class="form-label" for="bookSynopsis">Sinopsis</label>
+            <textarea class="form-control"
+                      id="bookSynopsis"
+                      rows="5"
+                      formControlName="synopsis"
+                      placeholder="Describe brevemente el libro...">
+            </textarea>
+          </div>
+
+          <!-- Acciones -->
+          <div class="d-flex gap-2">
+            <button class="btn btn-primary" type="submit" [disabled]="isLoading()">
+              @if (isLoading()) {
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                Guardando...
+              } @else {
+                <i class="bi bi-check-lg me-1"></i>
+                {{ isEditing() ? 'Guardar cambios' : 'Crear libro' }}
+              }
+            </button>
+            <a class="btn btn-outline-secondary" routerLink="/admin/books">
+              Cancelar
+            </a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <!-- Columna lateral: imagen -->
+    <div class="col-12 col-lg-4">
+      <div class="panel">
+        <h2 class="h5 mb-3 section-title">
+          <i class="bi bi-image" aria-hidden="true"></i>
+          <span>Portada</span>
+        </h2>
+
+        <!-- Preview -->
+        <div class="mb-3"
+             style="height: 240px; border: 2px dashed var(--admin-border);
+                    border-radius: 8px; overflow: hidden;">
+          @if (imagePreview()) {
+            <img [src]="imagePreview()"
+                 alt="Vista previa de portada"
+                 style="width:100%; height:100%; object-fit:cover;">
+          } @else {
+            <div class="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
+              <i class="bi bi-image display-4 mb-2" aria-hidden="true"></i>
+              <small>Sin imagen</small>
+            </div>
+          }
+        </div>
+
+        <!-- Input file -->
+        <div class="mb-3">
+          <label class="form-label" for="bookImage">
+            Seleccionar imagen
+          </label>
+          <input class="form-control"
+                 id="bookImage"
+                 type="file"
+                 accept="image/jpeg,image/png,image/webp"
+                 (change)="onFileSelected($event)">
+          <div class="form-text">JPEG, PNG o WEBP. Máx. 5MB.</div>
+        </div>
+
+        @if (imagePreview()) {
+          <button class="btn btn-outline-danger btn-sm w-100" type="button" (click)="removeImage()">
+            <i class="bi bi-trash me-1"></i> Quitar imagen
+          </button>
+        }
+
+        <!-- Nota -->
+        @if (!isEditing()) {
+          <div class="alert alert-primary py-2 mt-3 mb-0 small" role="note">
+            <i class="bi bi-info-circle me-1"></i>
+            Puedes agregar la portada ahora o después desde la edición del libro.
+          </div>
+        }
+      </div>
+    </div>
+
+  </div>
+}

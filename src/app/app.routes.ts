@@ -12,6 +12,16 @@ export const routes: Routes = [
     loadChildren: () => import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES),
   },
 
+  // Páginas de error — sin layout
+  {
+    path: '404',
+    loadComponent: () => import('./features/errors/pages/not-found/not-found').then(m => m.NotFound),
+  },
+  {
+    path: '500',
+    loadComponent: () => import('./features/errors/pages/server-error/server-error').then(m => m.ServerError),
+  },
+
   // Rutas protegidas — con layout
   {
     path: '',

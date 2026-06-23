@@ -1,1 +1,122 @@
-<p>book-detail works!</p>
+@if (isLoading()) {
+  <div class="d-flex justify-content-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+}
+
+@if (error()) {
+  <div class="alert alert-danger">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error() }}
+  </div>
+}
+
+@if (book(); as b) {
+
+  <!-- Encabezado -->
+  <div class="page-heading">
+    <div class="page-heading-copy">
+      <span class="page-icon">
+        <i class="bi bi-book-open" aria-hidden="true"></i>
+      </span>
+      <div>
+        <p class="eyebrow mb-1">{{ b.genre ?? 'Sin género' }}</p>
+        <h1 class="h3 mb-1">{{ b.title }}</h1>
+        <p class="text-muted mb-0">{{ b.author }}</p>
+      </div>
+    </div>
+    @if (isAdmin()) {
+      <div class="heading-actions">
+        <a class="btn btn-outline-secondary btn-sm" [routerLink]="['/books', b.id, 'edit']">
+          <i class="bi bi-pencil"></i> Editar
+        </a>
+      </div>
+    }
+  </div>
+
+  <div class="row g-4">
+
+    <!-- Columna izquierda: portada + info -->
+    <div class="col-12 col-lg-4">
+      <div class="panel">
+
+        <!-- Portada -->
+        <div style="height: 280px; overflow:hidden; margin: -1.35rem -1.35rem 1.35rem; border-radius: 8px 8px 0 0;">
+          @if (b.coverImage) {
+            <img [src]="b.coverImage" [alt]="b.title"
+                 style="width:100%; height:100%; object-fit:cover;">
+          } @else {
+            <div class="d-flex align-items-center justify-content-center h-100 bg-light">
+              <i class="bi bi-book display-1 text-muted"></i>
+            </div>
+          }
+        </div>
+
+        <!-- Rating -->
+        <div class="d-flex align-items-center gap-2 mb-3">
+          @for (star of getRatingStars(b.averageRating); track $index) {
+            <i class="bi {{ star }} text-warning" aria-hidden="true"></i>
+          }
+          <span class="fw-bold">
+            {{ b.averageRating ?? 'Sin calificación' }}
+          </span>
+          @if (b.reviewsCount) {
+            <span class="text-muted small">({{ b.reviewsCount }} reseñas)</span>
+          }
+        </div>
+
+        <!-- Metadatos -->
+        <div class="info-list">
+          @if (b.publicationDate) {
+            <div>
+              <span>Publicación</span>
+              <strong>{{ b.publicationDate }}</strong>
+            </div>
+          }
+          @if (b.genre) {
+            <div>
+              <span>Género</span>
+              <strong>{{ b.genre }}</strong>
+            </div>
+          }
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Columna derecha: sinopsis + reseñas -->
+    <div class="col-12 col-lg-8 d-flex flex-column gap-4">
+
+      <!-- Sinopsis -->
+      @if (b.synopsis) {
+        <div class="panel">
+          <h2 class="h5 mb-3 section-title">
+            <i class="bi bi-text-paragraph"></i>
+            <span>Sinopsis</span>
+          </h2>
+          <p class="text-muted mb-0">{{ b.synopsis }}</p>
+        </div>
+      }
+
+      <!-- Formulario de reseña -->
+      @if (isAuthenticated()) {
+        <app-review-form
+          [bookId]="b.id"
+          [existingReviews]="b.reviews ?? []"
+          [currentUserId]="currentUser()?.id ?? ''"
+          (reviewSubmitted)="onReviewSubmitted()">
+        </app-review-form>
+      }
+
+      <!-- Lista de reseñas -->
+      <app-review-list
+        [bookId]="b.id"
+        [reviews]="b.reviews ?? []"
+        [currentUserId]="currentUser()?.id ?? ''"
+        [isAdmin]="isAdmin()">
+      </app-review-list>
+
+    </div>
+  </div>
+}

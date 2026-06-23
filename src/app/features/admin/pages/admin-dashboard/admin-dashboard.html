@@ -1,1 +1,195 @@
-<p>admin-dashboard works!</p>
+<!-- Encabezado -->
+<div class="page-heading">
+  <div class="page-heading-copy">
+    <span class="page-icon">
+      <i class="bi bi-speedometer2" aria-hidden="true"></i>
+    </span>
+    <div>
+      <p class="eyebrow mb-1">Panel de control</p>
+      <h1 class="h3 mb-1">Dashboard</h1>
+      <p class="text-muted mb-0">Resumen general de Burrito Lector.</p>
+    </div>
+  </div>
+  <div class="heading-actions">
+    <a class="btn btn-primary btn-sm" routerLink="/admin/books/new">
+      <i class="bi bi-plus-lg"></i> Nuevo libro
+    </a>
+  </div>
+</div>
+
+@if (isLoading()) {
+  <div class="d-flex justify-content-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+}
+
+@if (error()) {
+  <div class="alert alert-danger" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error() }}
+  </div>
+}
+
+@if (!isLoading() && !error()) {
+
+  <!-- Métricas -->
+  <section class="row g-3 mb-4" aria-label="Métricas">
+    <div class="col-12 col-sm-6 col-xl-3">
+      <article class="metric-card metric-primary">
+        <div class="metric-top">
+          <span class="metric-label">Total libros</span>
+          <span class="metric-icon">
+            <i class="bi bi-book" aria-hidden="true"></i>
+          </span>
+        </div>
+        <div class="metric-value">{{ totalBooks() }}</div>
+        <div class="metric-meta">
+          <span>en el catálogo</span>
+        </div>
+      </article>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+      <article class="metric-card metric-success">
+        <div class="metric-top">
+          <span class="metric-label">Con calificación</span>
+          <span class="metric-icon">
+            <i class="bi bi-star-half" aria-hidden="true"></i>
+          </span>
+        </div>
+        <div class="metric-value">{{ booksWithRating().length }}</div>
+        <div class="metric-meta">
+          <span>de los últimos 5</span>
+        </div>
+      </article>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+      <article class="metric-card metric-warning">
+        <div class="metric-top">
+          <span class="metric-label">Sin portada</span>
+          <span class="metric-icon">
+            <i class="bi bi-image" aria-hidden="true"></i>
+          </span>
+        </div>
+        <div class="metric-value">{{ booksWithoutCover() }}</div>
+        <div class="metric-meta">
+          <span>requieren imagen</span>
+        </div>
+      </article>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+      <article class="metric-card metric-danger">
+        <div class="metric-top">
+          <span class="metric-label">Moderación</span>
+          <span class="metric-icon">
+            <i class="bi bi-shield-exclamation" aria-hidden="true"></i>
+          </span>
+        </div>
+        <div class="metric-value">
+          <i class="bi bi-arrow-right-circle text-primary" style="font-size:2rem;"></i>
+        </div>
+        <div class="metric-meta">
+          <a class="text-primary fw-bold" routerLink="/admin/reviews">
+            Revisar reseñas
+          </a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Tabla de libros recientes -->
+  <section class="panel">
+    <div class="panel-header">
+      <div>
+        <h2 class="h5 mb-1 section-title">
+          <i class="bi bi-clock-history" aria-hidden="true"></i>
+          <span>Libros recientes</span>
+        </h2>
+        <p class="text-muted mb-0 small">Últimos agregados al catálogo.</p>
+      </div>
+      <a class="btn btn-outline-secondary btn-sm" routerLink="/admin/books">
+        Ver todos
+      </a>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr>
+            <th scope="col">Libro</th>
+            <th scope="col">Género</th>
+            <th scope="col">Calificación</th>
+            <th scope="col">Portada</th>
+            <th scope="col" class="text-end">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (book of recentBooks(); track book.id) {
+            <tr>
+              <td>
+                <div class="table-media">
+                  @if (book.coverImage) {
+                    <img class="product-thumb"
+                         [src]="book.coverImage"
+                         [alt]="book.title">
+                  } @else {
+                    <div class="product-thumb d-flex align-items-center justify-content-center bg-light">
+                      <i class="bi bi-book text-muted" aria-hidden="true"></i>
+                    </div>
+                  }
+                  <div>
+                    <p class="fw-semibold mb-0">{{ book.title }}</p>
+                    <p class="text-muted small mb-0">{{ book.author }}</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                @if (book.genre) {
+                  <span class="badge text-bg-primary">{{ book.genre }}</span>
+                } @else {
+                  <span class="text-muted small">—</span>
+                }
+              </td>
+              <td>
+                @if (book.averageRating) {
+                  <div class="d-flex align-items-center gap-1">
+                    @for (star of getRatingStars(book.averageRating); track $index) {
+                      <i class="bi {{ star }} text-warning small" aria-hidden="true"></i>
+                    }
+                    <span class="small ms-1">{{ book.averageRating }}</span>
+                  </div>
+                } @else {
+                  <span class="text-muted small">Sin reseñas</span>
+                }
+              </td>
+              <td>
+                @if (book.coverImage) {
+                  <span class="badge text-bg-success">Sí</span>
+                } @else {
+                  <span class="badge text-bg-secondary">No</span>
+                }
+              </td>
+              <td class="text-end">
+                <div class="d-flex gap-1 justify-content-end">
+                  <a class="btn btn-light btn-sm"
+                     [routerLink]="['/books', book.id]"
+                     title="Ver">
+                    <i class="bi bi-eye" aria-hidden="true"></i>
+                  </a>
+                  <a class="btn btn-light btn-sm"
+                     [routerLink]="['/books', book.id, 'edit']"
+                     title="Editar">
+                    <i class="bi bi-pencil" aria-hidden="true"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+}

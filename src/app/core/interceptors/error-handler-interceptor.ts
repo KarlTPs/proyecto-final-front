@@ -21,6 +21,16 @@ export const errorHandlerInterceptor: HttpInterceptorFn = (req, next) => {
         case 404:
           // Dejar que cada componente maneje su propio 404
           break;
+        case 0:
+          // Sin respuesta del servidor (caído, CORS, sin conexión) — Render/Railway tardan
+          // en "despertar" en el plan free, así que esto puede ocurrir tras inactividad.
+          router.navigate(['/500']);
+          break;
+        default:
+          if (error.status >= 500) {
+            router.navigate(['/500']);
+          }
+          break;
       }
       return throwError(() => error);
     })

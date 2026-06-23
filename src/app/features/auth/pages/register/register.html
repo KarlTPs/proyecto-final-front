@@ -1,1 +1,124 @@
-<p>register works!</p>
+<body class="auth-body">
+
+  <button class="icon-button theme-toggle auth-theme-toggle"
+          type="button"
+          data-theme-toggle
+          aria-label="Switch color theme"
+          title="Switch color theme">
+    <i class="bi bi-moon-stars" data-theme-icon aria-hidden="true"></i>
+  </button>
+
+  <main class="auth-page">
+    <section class="auth-card">
+
+      <!-- Brand -->
+      <a class="auth-brand" routerLink="/books">
+        <span class="brand-icon">
+          <i class="bi bi-book-half" aria-hidden="true"></i>
+        </span>
+        <span>
+          <strong>Burrito Lector</strong>
+          <small>Crea tu cuenta.</small>
+        </span>
+      </a>
+
+      <!-- Visual decorativo -->
+      <div class="auth-visual">
+        <img src="assets/images/png/dasher-ui-bootstrap-5.jpg"
+             alt="Burrito Lector dashboard">
+      </div>
+
+      <!-- Formulario -->
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+        <div class="mb-4">
+          <p class="eyebrow mb-1">Únete a la comunidad</p>
+          <h1 class="h3 mb-1">Crear cuenta</h1>
+          <p class="text-muted mb-0">Regístrate para reseñar tus libros favoritos.</p>
+        </div>
+
+        <!-- Error global -->
+        @if (errorMessage()) {
+          <div class="alert alert-danger py-2 mb-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            {{ errorMessage() }}
+          </div>
+        }
+
+        <!-- Username -->
+        <div class="mb-3">
+          <label class="form-label" for="registerUsername">Usuario</label>
+          <input class="form-control"
+                 id="registerUsername"
+                 type="text"
+                 formControlName="username"
+                 [class.is-invalid]="username.invalid && username.touched">
+          @if (username.touched && username.hasError('required')) {
+            <div class="invalid-feedback">El usuario es requerido.</div>
+          }
+          @if (username.touched && username.hasError('minlength')) {
+            <div class="invalid-feedback">Mínimo 3 caracteres.</div>
+          }
+          @if (username.touched && username.hasError('maxlength')) {
+            <div class="invalid-feedback">Máximo 20 caracteres.</div>
+          }
+        </div>
+
+        <!-- Email -->
+        <div class="mb-3">
+          <label class="form-label" for="registerEmail">Correo electrónico</label>
+          <input class="form-control"
+                 id="registerEmail"
+                 type="email"
+                 formControlName="email"
+                 [class.is-invalid]="email.invalid && email.touched">
+          @if (email.touched && email.hasError('required')) {
+            <div class="invalid-feedback">El correo es requerido.</div>
+          }
+          @if (email.touched && email.hasError('email')) {
+            <div class="invalid-feedback">Ingresa un correo válido.</div>
+          }
+        </div>
+
+        <!-- Password -->
+        <div class="mb-3">
+          <label class="form-label" for="registerPassword">Contraseña</label>
+          <input class="form-control"
+                 id="registerPassword"
+                 type="password"
+                 formControlName="password"
+                 [class.is-invalid]="password.invalid && password.touched">
+          @if (password.touched && password.hasError('required')) {
+            <div class="invalid-feedback">La contraseña es requerida.</div>
+          }
+          @if (password.touched && password.hasError('minlength')) {
+            <div class="invalid-feedback">Mínimo 8 caracteres.</div>
+          }
+          @if (password.touched && password.hasError('weakPassword')) {
+            <div class="invalid-feedback">Debe incluir mayúscula, minúscula y un número o símbolo.</div>
+          }
+        </div>
+
+        <!-- Submit -->
+        <button class="btn btn-primary w-100"
+                type="submit"
+                [disabled]="isLoading()">
+          @if (isLoading()) {
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            Creando cuenta...
+          } @else {
+            <i class="bi bi-person-plus" aria-hidden="true"></i>
+            Crear cuenta
+          }
+        </button>
+
+      </form>
+
+      <div class="auth-footer">
+        ¿Ya tienes cuenta? <a routerLink="/auth/login">Inicia sesión</a>
+      </div>
+
+    </section>
+  </main>
+
+</body>

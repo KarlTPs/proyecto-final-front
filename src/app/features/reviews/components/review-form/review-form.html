@@ -1,1 +1,102 @@
-<p>review-form works!</p>
+<div class="panel">
+  <h2 class="h5 mb-3 section-title">
+    <i class="bi bi-star-half" aria-hidden="true"></i>
+    <span>{{ userReview() ? 'Tu reseña' : 'Dejar una reseña' }}</span>
+  </h2>
+
+  <!-- Ya tiene reseña y no está editando -->
+  @if (alreadyReviewed()) {
+    <div class="d-flex align-items-start justify-content-between gap-3">
+      <div>
+        <div class="d-flex gap-1 mb-2">
+          @for (star of starsArray; track star) {
+            <i class="bi text-warning"
+               [class.bi-star-fill]="star <= (userReview()?.rating ?? 0)"
+               [class.bi-star]="star > (userReview()?.rating ?? 0)"
+               aria-hidden="true"></i>
+          }
+        </div>
+        @if (userReview()?.comment) {
+          <p class="text-muted mb-0">{{ userReview()!.comment }}</p>
+        }
+      </div>
+      <button class="btn btn-outline-secondary btn-sm flex-shrink-0" (click)="startEditing()">
+        <i class="bi bi-pencil"></i> Editar
+      </button>
+    </div>
+  }
+
+  <!-- Formulario: nueva reseña o editando -->
+  @if (!alreadyReviewed() || isEditing()) {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+      @if (errorMessage()) {
+        <div class="alert alert-danger py-2 mb-3" role="alert">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ errorMessage() }}
+        </div>
+      }
+
+      @if (successMessage()) {
+        <div class="alert alert-success py-2 mb-3" role="alert">
+          <i class="bi bi-check-circle-fill me-2"></i>{{ successMessage() }}
+        </div>
+      }
+
+      <!-- Estrellas interactivas -->
+      <div class="mb-3">
+        <label class="form-label">Calificación <span class="text-danger">*</span></label>
+        <div class="d-flex gap-2">
+          @for (star of starsArray; track star) {
+            <button type="button"
+                    class="btn p-0 border-0"
+                    style="font-size: 1.5rem; line-height: 1;"
+                    (mouseenter)="hoveredStar.set(star)"
+                    (mouseleave)="hoveredStar.set(0)"
+                    (click)="setRating(star)"
+                    [attr.aria-label]="star + ' estrellas'">
+              <i class="bi text-warning"
+                 [class.bi-star-fill]="star <= currentRating"
+                 [class.bi-star]="star > currentRating"
+                 aria-hidden="true"></i>
+            </button>
+          }
+        </div>
+        @if (rating.touched && rating.hasError('min')) {
+          <div class="text-danger small mt-1">Selecciona al menos 1 estrella.</div>
+        }
+      </div>
+
+      <!-- Comentario -->
+      <div class="mb-3">
+        <label class="form-label" for="reviewComment">Comentario (opcional)</label>
+        <textarea class="form-control"
+                  id="reviewComment"
+                  rows="3"
+                  formControlName="comment"
+                  placeholder="Comparte tu opinión sobre este libro..."
+                  [class.is-invalid]="comment.invalid && comment.touched">
+        </textarea>
+        @if (comment.hasError('maxlength')) {
+          <div class="invalid-feedback">Máximo 1000 caracteres.</div>
+        }
+        <div class="form-text text-end">{{ comment.value?.length ?? 0 }}/1000</div>
+      </div>
+
+      <!-- Acciones -->
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary btn-sm" type="submit" [disabled]="isLoading()">
+          @if (isLoading()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          }
+          {{ editingId() ? 'Actualizar' : 'Publicar reseña' }}
+        </button>
+        @if (isEditing()) {
+          <button class="btn btn-outline-secondary btn-sm" type="button" (click)="cancelEditing()">
+            Cancelar
+          </button>
+        }
+      </div>
+
+    </form>
+  }
+</div>

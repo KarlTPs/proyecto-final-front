@@ -1,1 +1,27 @@
-<p>review-list works!</p>
+<div class="panel">
+  <h2 class="h5 mb-4 section-title">
+    <i class="bi bi-chat-left-text" aria-hidden="true"></i>
+    <span>Reseñas ({{ localReviews().length }})</span>
+  </h2>
+
+  @if (localReviews().length === 0) {
+    <div class="blank-panel" style="min-height: 160px;">
+      <div class="blank-state">
+        <i class="bi bi-chat-left display-4 text-muted mb-2" aria-hidden="true"></i>
+        <p class="text-muted mb-0">Aún no hay reseñas para este libro.</p>
+      </div>
+    </div>
+  } @else {
+    <div class="d-flex flex-column gap-3">
+      @for (review of localReviews(); track review.id) {
+        <app-review-card
+          [review]="review"
+          [currentUserId]="currentUserId()"
+          [isAdmin]="isAdmin()"
+          (reviewDeleted)="onReviewDeleted($event)"
+          (reviewUpdated)="onReviewUpdated($event)">
+        </app-review-card>
+      }
+    </div>
+  }
+</div>

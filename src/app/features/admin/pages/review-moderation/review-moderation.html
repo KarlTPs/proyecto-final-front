@@ -1,1 +1,166 @@
-<p>review-moderation works!</p>
+<!-- Encabezado -->
+<div class="page-heading">
+  <div class="page-heading-copy">
+    <span class="page-icon">
+      <i class="bi bi-shield-exclamation" aria-hidden="true"></i>
+    </span>
+    <div>
+      <p class="eyebrow mb-1">Administración</p>
+      <h1 class="h3 mb-1">Moderación de reseñas</h1>
+      <p class="text-muted mb-0">{{ totalReviews }} reseñas en total.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal confirmación -->
+@if (deletingReview()) {
+  <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-exclamation-triangle text-danger me-2"></i>
+            Eliminar reseña
+          </h5>
+          <button type="button" class="btn-close" (click)="cancelDelete()"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-2">¿Eliminar la reseña de
+            <strong>{{ deletingReview()!.review.user.username }}</strong>
+            sobre <strong>{{ deletingReview()!.bookTitle }}</strong>?
+          </p>
+          @if (deletingReview()!.review.comment) {
+            <blockquote class="blockquote border-start ps-3 text-muted small">
+              "{{ deletingReview()!.review.comment }}"
+            </blockquote>
+          }
+          @if (deleteError()) {
+            <div class="alert alert-danger py-2 mb-0 small">
+              <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ deleteError() }}
+            </div>
+          }
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary btn-sm" (click)="cancelDelete()">
+            Cancelar
+          </button>
+          <button class="btn btn-danger btn-sm" (click)="executeDelete()" [disabled]="isDeleting()">
+            @if (isDeleting()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (isLoading()) {
+  <div class="d-flex justify-content-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+}
+
+@if (error()) {
+  <div class="alert alert-danger" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error() }}
+  </div>
+}
+
+@if (!isLoading() && !error()) {
+
+  @if (booksWithReviews().length === 0) {
+    <div class="panel">
+      <div class="blank-panel">
+        <div class="blank-state">
+          <i class="bi bi-chat-left display-4 text-muted mb-2"></i>
+          <p class="text-muted mb-0">No hay reseñas para moderar.</p>
+        </div>
+      </div>
+    </div>
+  } @else {
+
+    <div class="d-flex flex-column gap-4">
+      @for (book of booksWithReviews(); track book.id) {
+        <div class="panel">
+
+          <!-- Header del libro -->
+          <div class="panel-header">
+            <div class="d-flex align-items-center gap-3">
+              @if (book.coverImage) {
+                <img class="product-thumb"
+                     [src]="book.coverImage"
+                     [alt]="book.title">
+              } @else {
+                <div class="product-thumb d-flex align-items-center justify-content-center bg-light">
+                  <i class="bi bi-book text-muted"></i>
+                </div>
+              }
+              <div>
+                <h2 class="h5 mb-0">{{ book.title }}</h2>
+                <p class="text-muted small mb-0">
+                  {{ book.author }} · {{ book.reviews.length }}
+                  {{ book.reviews.length === 1 ? 'reseña' : 'reseñas' }}
+                </p>
+              </div>
+            </div>
+            <a class="btn btn-light btn-sm"
+               [routerLink]="['/books', book.id]">
+              <i class="bi bi-eye me-1"></i> Ver libro
+            </a>
+          </div>
+
+          <!-- Reseñas del libro -->
+          <div class="d-flex flex-column gap-3">
+            @for (review of book.reviews; track review.id) {
+              <div class="d-flex align-items-start gap-3 p-3"
+                   style="border: 1px solid var(--admin-border); border-radius: 8px;">
+
+                <!-- Info usuario -->
+                <div class="flex-grow-1">
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="profile-avatar">
+                      <i class="bi bi-person-fill" aria-hidden="true"></i>
+                    </span>
+                    <strong class="small">{{ review.user.username }}</strong>
+                    <span class="text-muted small">·</span>
+                    <span class="text-muted small">
+                      {{ review.createdAt | date:'dd MMM yyyy' }}
+                    </span>
+                  </div>
+
+                  <!-- Estrellas -->
+                  <div class="d-flex gap-1 mb-1">
+                    @for (star of getRatingStars(review.rating); track $index) {
+                      <i class="bi {{ star }} text-warning small" aria-hidden="true"></i>
+                    }
+                    <span class="small text-muted ms-1">{{ review.rating }}/5</span>
+                  </div>
+
+                  <!-- Comentario -->
+                  @if (review.comment) {
+                    <p class="text-muted small mb-0">{{ review.comment }}</p>
+                  } @else {
+                    <p class="text-muted small fst-italic mb-0">Sin comentario</p>
+                  }
+                </div>
+
+                <!-- Botón eliminar -->
+                <button class="btn btn-light btn-sm text-danger flex-shrink-0"
+                        (click)="confirmDelete(review, book.title)"
+                        title="Eliminar reseña">
+                  <i class="bi bi-trash" aria-hidden="true"></i>
+                </button>
+
+              </div>
+            }
+          </div>
+
+        </div>
+      }
+    </div>
+  }
+}
