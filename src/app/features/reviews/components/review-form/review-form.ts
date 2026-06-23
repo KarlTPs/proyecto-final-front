@@ -1,4 +1,4 @@
-import { Component, inject, signal, input, output, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, input, output, computed, OnChanges } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Reviews, CreateReviewDto } from '../../services/reviews';
 import { Review } from '../../../../core/models/review';
@@ -9,7 +9,7 @@ import { Review } from '../../../../core/models/review';
   imports: [ReactiveFormsModule],
   templateUrl: './review-form.html',
 })
-export class ReviewForm implements OnInit {
+export class ReviewForm implements OnChanges {
   private fb      = inject(FormBuilder);
   private reviews = inject(Reviews);
 
@@ -44,8 +44,7 @@ export class ReviewForm implements OnInit {
   get rating()  { return this.form.get('rating')!;  }
   get comment() { return this.form.get('comment')!; }
 
-  ngOnInit(): void {
-    // Si ya tiene reseña, pre-cargar en modo edición disponible
+  ngOnChanges(): void {
     const existing = this.userReview();
     if (existing) {
       this.form.patchValue({
@@ -53,6 +52,9 @@ export class ReviewForm implements OnInit {
         comment: existing.comment ?? '',
       });
       this.editingId.set(existing.id);
+    } else {
+      this.editingId.set(null);
+      this.form.reset({ rating: 0, comment: '' });
     }
   }
 

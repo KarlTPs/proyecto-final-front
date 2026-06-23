@@ -103,20 +103,20 @@
       @if (isAuthenticated()) {
         <app-review-form
           [bookId]="b.id"
-          [existingReviews]="b.reviews ?? []"
+          [existingReviews]="bookReviews()"
           [currentUserId]="currentUser()?.id ?? ''"
           (reviewSubmitted)="onReviewSubmitted()">
         </app-review-form>
       }
-
+      
       <!-- Lista de reseñas -->
       <app-review-list
         [bookId]="b.id"
-        [reviews]="b.reviews ?? []"
+        [reviews]="bookReviews()"
         [currentUserId]="currentUser()?.id ?? ''"
         [isAdmin]="isAdmin()">
       </app-review-list>
-
+      
     </div>
   </div>
 }

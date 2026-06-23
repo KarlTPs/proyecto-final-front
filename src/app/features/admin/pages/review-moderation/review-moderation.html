@@ -26,8 +26,8 @@
         </div>
         <div class="modal-body">
           <p class="mb-2">¿Eliminar la reseña de
-            <strong>{{ deletingReview()!.review.user.username }}</strong>
-            sobre <strong>{{ deletingReview()!.bookTitle }}</strong>?
+            <strong>{{ deletingReview()!.review.user?.username ?? 'usuario desconocido' }}</strong>
+            sobre <strong>{{ deletingReview()!.bookTitle ?? 'este libro' }}</strong>?
           </p>
           @if (deletingReview()!.review.comment) {
             <blockquote class="blockquote border-start ps-3 text-muted small">

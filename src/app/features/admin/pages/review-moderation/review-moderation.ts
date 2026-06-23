@@ -5,6 +5,7 @@ import { Books } from '../../../books/services/books';
 import { Reviews } from '../../../reviews/services/reviews';
 import { Book } from '../../../../core/models/book';
 import { Review } from '../../../../core/models/review';
+import { catchError, forkJoin, of } from 'rxjs';
 
 interface BookWithReviews extends Book {
   reviews: Review[];
@@ -34,48 +35,38 @@ export class ReviewModeration implements OnInit {
   }
 
   private loadBooksWithReviews(): void {
-    this.isLoading.set(true);
-    this.booksService.getAll({ page: 1, limit: 50 }).subscribe({
-      next: (res) => {
-        // Cargar detalle de cada libro para obtener sus reseñas
-        const books = res.data;
-        const withReviews: BookWithReviews[] = [];
-        let loaded = 0;
+  this.isLoading.set(true);
 
-        if (books.length === 0) {
-          this.booksWithReviews.set([]);
-          this.isLoading.set(false);
-          return;
-        }
-
-        books.forEach(book => {
-          this.booksService.getById(book.id).subscribe({
-            next: (detail) => {
-              if (detail.reviews && detail.reviews.length > 0) {
-                withReviews.push(detail as BookWithReviews);
-              }
-              loaded++;
-              if (loaded === books.length) {
-                this.booksWithReviews.set(withReviews);
-                this.isLoading.set(false);
-              }
-            },
-            error: () => {
-              loaded++;
-              if (loaded === books.length) {
-                this.booksWithReviews.set(withReviews);
-                this.isLoading.set(false);
-              }
-            },
-          });
-        });
-      },
-      error: () => {
-        this.error.set('Error al cargar las reseñas.');
+  this.booksService.getAll({ page: 1, limit: 50 }).subscribe({
+    next: (res) => {
+      if (res.data.length === 0) {
+        this.booksWithReviews.set([]);
         this.isLoading.set(false);
-      },
-    });
-  }
+        return;
+      }
+
+      // Cargar todos los detalles en paralelo de forma controlada
+      const requests = res.data.map(book =>
+        this.booksService.getById(book.id).pipe(
+          catchError(() => of(null)) // Si falla uno, no bloquear los demás
+        )
+      );
+
+      forkJoin(requests).subscribe(details => {
+        const withReviews = details
+          .filter((b): b is Book & { reviews: Review[] } =>
+            b !== null && Array.isArray(b.reviews) && b.reviews.length > 0
+          );
+        this.booksWithReviews.set(withReviews);
+        this.isLoading.set(false);
+      });
+    },
+    error: () => {
+      this.error.set('Error al cargar las reseñas.');
+      this.isLoading.set(false);
+    },
+  });
+}
 
   confirmDelete(review: Review, bookTitle: string): void {
     this.deletingReview.set({ review, bookTitle });
